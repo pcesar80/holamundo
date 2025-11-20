@@ -1,138 +1,24 @@
-<!-- Proyecto Web: Guardar y leer datos desde JSON en GitHub
-Estructura completa: index.html + script.js + styles.css -->
-
-<!-- ================= index.html ================= -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guardar dato en GitHub JSON</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guardar dato en GitHub JSON</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h2>Persistencia con GitHub JSON</h2>
+<div class="container">
+<h2>Persistencia con GitHub JSON</h2>
 
-        <div id="storedValue" class="stored-box">Cargando dato...</div>
 
-        <input type="text" id="inputValue" placeholder="Ingresar valor..." />
-        <button onclick="saveData()">Guardar</button>
-    </div>
+<div id="storedValue" class="stored-box">Cargando dato...</div>
 
-    <script src="script.js"></script>
+
+<input type="text" id="inputValue" placeholder="Ingresar valor..." />
+<button onclick="saveData()">Guardar</button>
+</div>
+
+
+<script src="script.js"></script>
 </body>
 </html>
-
-
-<!-- ================= styles.css ================= -->
-/* Estilos simples */
-body {
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-.container {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    width: 320px;
-    text-align: center;
-}
-#storedValue {
-    margin-bottom: 15px;
-    padding: 10px;
-    background: #eef;
-    border-radius: 5px;
-    font-weight: bold;
-}
-input {
-    width: 95%;
-    padding: 8px;
-    margin-bottom: 10px;
-}
-button {
-    padding: 10px 15px;
-    cursor: pointer;
-    width: 100%;
-}
-
-
-<!-- ================= script.js ================= -->
-// CONFIGURAR ESTOS VALORES CUANDO TENGAS EL REPO
-const GITHUB_USER = "";         // ej: pcesar80
-const GITHUB_REPO = "";         // ej: Asistencias_Tecnologia
-const FILE_PATH = "data.json";  // ruta del JSON en tu repo
-const TOKEN = "";               // Token GitHub (privado)
-
-// URL del archivo en RAW
-function getRawUrl() {
-    return `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${FILE_PATH}`;
-}
-
-// URL API para escribir
-function getApiUrl() {
-    return `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
-}
-
-// === Leer JSON del repo ===
-async function loadData() {
-    try {
-        const res = await fetch(getRawUrl());
-        if (!res.ok) throw new Error("No se pudo leer el JSON");
-        const data = await res.json();
-        document.getElementById("storedValue").textContent = `Dato guardado: ${data.valor}`;
-    } catch (e) {
-        document.getElementById("storedValue").textContent = "No hay datos aún";
-    }
-}
-
-// === Guardar JSON en GitHub ===
-async function saveData() {
-    const value = document.getElementById("inputValue").value;
-    if (!value) return alert("Ingrese un valor");
-
-    const newContent = {
-        valor: value,
-        actualizado: new Date().toISOString()
-    };
-
-    // Obtener SHA del archivo si existe
-    let sha = null;
-    try {
-        const res = await fetch(getApiUrl());
-        if (res.ok) {
-            const info = await res.json();
-            sha = info.sha;
-        }
-    } catch {}
-
-    const payload = {
-        message: "Actualización desde web",
-        content: btoa(JSON.stringify(newContent, null, 2)),
-        sha: sha
-    };
-
-    const response = await fetch(getApiUrl(), {
-        method: "PUT",
-        headers: {
-            "Authorization": `token ${TOKEN}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-    });
-
-    if (response.ok) {
-        alert("Guardado en GitHub!");
-        loadData();
-    } else {
-        alert("Error al guardar");
-    }
-}
-
-// Cargar al abrir
-document.addEventListener("DOMContentLoaded", loadData);
